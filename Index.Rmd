@@ -1,0 +1,222 @@
+---
+title: "Final Project"
+author: "Aaron Grenz and Marie Marshall"
+output: html_document
+---
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggmap)
+library(gridExtra)
+library(reshape2)
+library(tm)
+library(stringr)
+library(scales)
+library(googleVis)
+library(datasets)
+library(rCharts)
+```
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+load("C:/Users/b021494/Desktop/DataViz/GitHub/Final Project/school2012.Rda")
+load("C:/Users/b021494/Desktop/DataViz/GitHub/Final Project/student2012.Rda")
+
+studentUS=student2012[student2012$CNT=="United States of America",]
+schoolUS=school2012[school2012$CNT=="United States of America",]
+
+```
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+#Combining US school structure data frame with the average math, reading, and science test scores.
+
+scoreUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ SCHOOLID, studentUS, function(x) mean(as.numeric(x)))
+
+combined = merge(schoolUS, scoreUS, by='SCHOOLID', all.y = T, sort=F )
+
+```
+
+#Is The US The Best?
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+scoreWORLD = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ CNT, student2012, function(x) mean(as.numeric(x)))
+
+ggplot(scoreWORLD,aes(x=reorder(CNT,PV1MATH),y=PV1MATH,fill=CNT)) + geom_bar(stat="identity") + ggtitle("Math scores by Country") + theme(legend.position="none") + theme_bw() + xlab("Countries") + ylab("Average Math Scores") + theme(axis.text.x = element_text(angle=-90)) + theme(legend.position="none")
+
+ggplot(scoreWORLD,aes(x=reorder(CNT,PV1READ),y=PV1READ, fill=CNT)) + geom_bar(stat="identity") + ggtitle("Reading scores by country") + theme(legend.position="none") + theme_bw() + xlab("Countries") + ylab("Average Reading Scores") + theme(axis.text.x = element_text(angle=-90)) + theme(legend.position="none")
+
+ggplot(scoreWORLD,aes(x=reorder(CNT,PV1SCIE),y=PV1SCIE, fill=CNT)) + geom_bar(stat="identity") + ggtitle("Science scores by Country") + theme(legend.position="none") + theme_bw() + xlab("Countries") + ylab("Average Science Scores") + theme(axis.text.x = element_text(angle=-90)) + theme(legend.position="none")
+
+```
+
+As shown by the graphs above, compared to our international peers the United States public school system could be better and should be better. In science, math, and reading the United states is in the middle of the pack. Interestingly, the lowest score out of all the three areas is math. The highest test score out of the three subjects was Reading. Throughout this document we aim to show the potential flaws in the United States school system. Specifically, we focus on issues that may influence students performance on these reading, science, and math scores. We focused our research on home environment, classroom size, student involvement. 
+
+From our background research we were able to develop the following hypothesis:
+
+Hypothesis 1: Students who have a high involvement in their education will perform on average better on science, math, and reading tests.
+
+Hypothesis 2: Students who have a positive home environment will perform on average better on science, math, and reading tests.
+
+Hypothesis 3: Students enrolled in small classes will perform on average better on science, math, and reading.
+
+#Hypothesis One: Student Involement
+##Arriving Late To School Versus Math, Reading, and Science scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+tardyUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST08Q01, studentUS, function(x) mean(as.numeric(x)))
+
+P1=ggplot(tardyUS,aes(x=ST08Q01,y=PV1MATH,fill=ST08Q01)) + geom_bar(stat="identity") + ggtitle("Math")  + theme_bw() + xlab("# of Times Arriving Late") + ylab("Average US Math Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+P2=ggplot(tardyUS,aes(x=ST08Q01,y=PV1READ, fill=ST08Q01)) + geom_bar(stat="identity") + ggtitle("Reading") + theme(legend.position="none") + theme_bw() + xlab("# of Times Arriving Late") + ylab("Average Reading Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+P3=ggplot(tardyUS,aes(x=ST08Q01,y=PV1SCIE, fill=ST08Q01)) + geom_bar(stat="identity") + ggtitle("Science") + theme(legend.position="none") + theme_bw() + xlab("# of Times Arriving Late") + ylab("Average Science Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+grid.arrange(P1,P2,P3,ncol=3)
+
+```
+
+##Skipping Full Days of School Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+absenceUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST09Q01, studentUS, function(x) mean(as.numeric(x)))
+
+G1=ggplot(absenceUS,aes(x=ST09Q01,y=PV1MATH, fill=ST09Q01)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("# of Times Skipped") + ylab("Average US Math Scores") + theme(axis.text.x = element_text(angle=-90)) + theme(legend.position="none")
+
+G2=ggplot(absenceUS,aes(x=ST09Q01,y=PV1READ, fill=ST09Q01)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("# of Times Skipped") + ylab("Average Reading Scores") + theme(axis.text.x = element_text(angle=-90)) + theme(legend.position="none")
+
+G3=ggplot(absenceUS,aes(x=ST09Q01,y=PV1SCIE, fill=ST09Q01)) + geom_bar(stat="identity") + ggtitle("Science") + theme_bw() + xlab("# of Times Skipped") + ylab("Average Science Scores") + theme(axis.text.x = element_text(angle=-90)) + theme(legend.position="none")
+
+grid.arrange(G1,G2,G3,ncol=3)
+```
+
+According to the Public School Review Board student, involvement is a large issue in US schools. In order to investigate this further we compared student involvement with math, reading, and science test scores. We used the number of times students recorded arriving late to school as the measurement for student  involvement. As shown by the graphs, the less students showed up late corresponded to higher test scores in every area. In addition, we also examined the amount of times student recorded arriving late. As shown by the graphs, the same pattern was observed. These findings support our first hypothesis which was based of a poll from the National Center for Education Statistics tardiness and absences as a significant challenges for teachers. 
+
+#Hypothesis 2: Home Environment
+##Mother At Home Versus Math, Reading, and Science Scores.
+
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+motherHomeUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST11Q01, studentUS, function(x) mean(as.numeric(x)))
+
+C1=ggplot(motherHomeUS,aes(x=ST11Q01,y=PV1MATH, fill=ST11Q01)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("Mother at home?") + ylab("Average US Math Scores")+ theme(legend.position="none")
+
+C2=ggplot(motherHomeUS,aes(x=ST11Q01,y=PV1READ, fill=ST11Q01)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("Mother at home?") + ylab("Average Reading Scores")+ theme(legend.position="none")
+
+C3=ggplot(motherHomeUS,aes(x=ST11Q01,y=PV1SCIE, fill=ST11Q01)) + geom_bar(stat="identity") + ggtitle("Science") + theme_bw() + xlab("Mother at home?") + ylab("Average Science Scores")+ theme(legend.position="none")
+
+grid.arrange(C1,C2,C3,ncol=3)
+```
+
+##Father At Home Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+fatherHomeUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST11Q02, studentUS, function(x) mean(as.numeric(x)))
+
+A1=ggplot(fatherHomeUS,aes(x=ST11Q02,y=PV1MATH, fill=ST11Q02)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("Father at home?") + ylab("Average US Math Scores")+ theme(legend.position="none")
+
+A2=ggplot(fatherHomeUS,aes(x=ST11Q02,y=PV1READ, fill=ST11Q02)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("Father at home?") + ylab("Average Reading Scores")+ theme(legend.position="none")
+
+A3=ggplot(fatherHomeUS,aes(x=ST11Q02,y=PV1SCIE, fill=ST11Q02)) + geom_bar(stat="identity") + ggtitle("Science") + theme_bw() + xlab("Father at home?") + ylab("Average Science Scores")+ theme(legend.position="none")
+
+grid.arrange(A1,A2,A3,ncol=3)
+```
+
+Several graphs were developed to investigate whether having a mother and father present in the home affects a students' performance. As shown by the graphs, all students whose parents were present in the home performed better on the tests. These findings support our hypothesis that students who have a positive home environment will perform on average better on science, math, and reading tests.
+
+##Having A Place To Study Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+studyPlaceUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST26Q03, studentUS, function(x) mean(as.numeric(x)))
+
+B1=ggplot(studyPlaceUS,aes(x=ST26Q03,y=PV1MATH, fill=ST26Q03)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("Place to Study?") + ylab("Average US Math Scores")+ theme(legend.position="none")
+
+B2=ggplot(studyPlaceUS,aes(x=ST26Q03,y=PV1READ, fill=ST26Q03)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("Place to Study?") + ylab("Average Reading Scores")+ theme(legend.position="none")
+
+B3=ggplot(studyPlaceUS,aes(x=ST26Q03,y=PV1SCIE, fill=ST26Q03)) + geom_bar(stat="identity") + ggtitle("Science") + theme_bw() + xlab("Place to Study?") + ylab("Average Science Scores") + theme(legend.position="none")
+
+grid.arrange(B1,B2,B3,ncol=3)
+```
+
+Next, we investigated if there was a relationship between test scores and whether the student had a place to study in the home. As shown by the graph, students on average performed better on all tests if they had a place to study in the home. These findings support our hypothesis that students perform better on tests scores if they have a positive home environment.
+
+##Internet At Home Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+internetUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST26Q06, studentUS, function(x) mean(as.numeric(x)))
+
+S1=ggplot(internetUS,aes(x=ST26Q06,y=PV1MATH,fill=ST26Q06)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("Internet at home?") + ylab("Average US Math Scores") + theme(legend.position="none")
+
+S2=ggplot(internetUS,aes(x=ST26Q06,y=PV1READ, fill=ST26Q06)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("Internet at home?") + ylab("Average Reading Scores") + theme(legend.position="none")
+
+S3=ggplot(internetUS,aes(x=ST26Q06,y=PV1SCIE, fill=ST26Q06)) + geom_bar(stat="identity") + ggtitle("Science") + theme_bw() + xlab("Internet at home?") + ylab("Average Science Scores") + theme(legend.position="none")
+
+grid.arrange(S1,S2,S3,ncol=3)
+
+```
+
+In addition, we also investigated if students perform better if they have internet access in their home. The graph reveals that students on average perform better on science, math, and reading tests if they have internet access in their home.
+
+##Books At Home Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+booksUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST28Q01, studentUS, function(x) mean(as.numeric(x)))
+
+F1=ggplot(booksUS,aes(x=ST28Q01,y=PV1MATH, fill=ST28Q01)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("# of Books") + ylab("Average US Math Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+F2=ggplot(booksUS,aes(x=ST28Q01,y=PV1READ, fill=ST28Q01)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("# of Books") + ylab("Average Reading Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+F3=ggplot(booksUS,aes(x=ST28Q01,y=PV1SCIE, fill=ST28Q01)) + geom_bar(stat="identity") + ggtitle("Science") + theme_bw() + xlab("# of Books") + ylab("Average Science Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+grid.arrange(F1,F2,F3,ncol=3)
+
+```
+
+The following graphs display the relationship between the number of books in the home environment and students test scores. As shown by the graphs, there is a positive correlation between the number of books that are available to a student in the home and high test scores. 
+
+##Parents Believe Studying Math Is Important Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+parentsMathStudyUS = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ ST35Q04, studentUS, function(x) mean(as.numeric(x)))
+
+gvis1 <- gvisBarChart(parentsMathStudyUS, xvar = "ST35Q04", yvar = "PV1MATH", options=list(width=750, height=400, title="Parent Believes Studying Math is Important vs. US Math Scores",titleTextStyle="{color:'orange', fontSize:20}", legend="{position: 'none'}"))
+
+plot(gvis1)
+print(gvis1,file="gvis1.html")
+```
+<iframe src="gvis1.html" width="800" height="500"></iframe>
+
+
+This graph displays the relationship between parents belief of studying math is important and test grades. The graph shows students on average score better on the math test if the parents believe studying math is important. This supports our hypothesis that students perform better in positive home environment.
+
+#Hypothesis 3: Class Sizes
+##Class Size Versus Math, Reading, and Science Scores.
+```{r,echo=FALSE, warning=FALSE,message=FALSE}
+
+sizeClass = aggregate(cbind(PV1MATH,PV1READ,PV1SCIE) ~ SC05Q01, combined, function(x) mean(as.numeric(x)))
+
+sizeClass <- subset(sizeClass, SC05Q01!="97" & SC05Q01!="98" & SC05Q01!="99")
+
+sizeClass$SC05Q01 <- as.numeric(sizeClass$SC05Q01)
+
+sizeClass$SC05Q01[1] <- "15 students or fewer"
+sizeClass$SC05Q01[2] <- "16-20 students"
+sizeClass$SC05Q01[3] <- "21-25 students"
+sizeClass$SC05Q01[4] <- "26-30 students"
+sizeClass$SC05Q01[5] <- "31-35 students"
+sizeClass$SC05Q01[6] <- "36-40 students"
+sizeClass$SC05Q01[7] <- "41-45 students"
+
+H1=ggplot(sizeClass,aes(x=SC05Q01,y=PV1MATH,fill=SC05Q01)) + geom_bar(stat="identity") + ggtitle("Math") + theme_bw() + xlab("Class Size") + ylab("Average US Math Scores") + theme(axis.text.x = element_text(angle=-90))+ theme(legend.position="none")
+
+H2=ggplot(sizeClass,aes(x=SC05Q01,y=PV1READ,fill=SC05Q01)) + geom_bar(stat="identity") + ggtitle("Reading") + theme_bw() + xlab("Countries") + ylab("Average Reading Scores") + theme(axis.text.x = element_text(angle=-90), axis.text.y = element_blank())+ theme(legend.position="none")
+
+H3=ggplot(sizeClass,aes(x=SC05Q01,y=PV1SCIE,fill=SC05Q01)) + geom_bar(stat="identity") + ggtitle("Science")+ theme_bw() + xlab("Countries") + ylab("Average Science Scores") + theme(axis.text.x = element_text(angle=-90), axis.text.y = element_blank())+ theme(legend.position="none")
+
+grid.arrange(H1,H2,H3,ncol=3)
+```
+
+Lastly we investigated the relationship between test scores and the classroom size. Each of the three graphs show a significant decline of test scores once the class size goes over 35 students. However, according to the National Center for Education Statistics the average class size in the United Sates during 2012 was 27 people. Ultimately showing classroom size is not a significant issue affecting the US students in 2012.
+
+To conclude, we believe the United States should focus on improving students home environment, increase student involvement, and try to maintain their current class size.
+
